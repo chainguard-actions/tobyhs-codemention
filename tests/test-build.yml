@@ -1,0 +1,37 @@
+name: Test codemention build step
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Run the action; it will npm install, build TypeScript, then fail at
+      # node run.js due to the fake token — but the build artifacts are created
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          githubToken: fake-token-for-testing
+        env:
+          GITHUB_EVENT_NAME: pull_request
+          GITHUB_REF: refs/pull/1/merge
+          GITHUB_HEAD_REF: feature-branch
+          GITHUB_BASE_REF: main
+
+      - name: Assert dist/main.js was created by the build step
+        run: |
+          if [ ! -f "$GITHUB_WORKSPACE/dist/main.js" ]; then
+            echo "FAIL: dist/main.js was not created by the build step"
+            exit 1
+          fi
+          echo "PASS: dist/main.js exists"
+
+      - name: Assert run.js imports from dist/main.js
+        run: |
+          if ! grep -q "dist/main.js" "$GITHUB_WORKSPACE/run.js"; then
+            echo "FAIL: run.js does not reference dist/main.js"
+            exit 1
+          fi
+          echo "PASS: run.js correctly references dist/main.js"
