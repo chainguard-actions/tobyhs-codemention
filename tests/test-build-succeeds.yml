@@ -1,0 +1,39 @@
+name: Test codemention build succeeds
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: pull_request
+      GITHUB_REF: refs/pull/1/merge
+      GITHUB_HEAD_REF: feature-branch
+      GITHUB_BASE_REF: main
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Run the action with continue-on-error since node run.js will fail
+      # without a valid GitHub token and PR context, but we want to verify
+      # the npm install and build steps succeed.
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          githubToken: fake-token-for-build-test
+
+      - name: Assert build artifacts exist
+        run: |
+          # Under act, 'uses: .' sets github.action_path to $GITHUB_WORKSPACE.
+          # The TypeScript build (tsc) outputs to ./lib relative to the action path,
+          # so lib/main.js will be at $GITHUB_WORKSPACE/lib/main.js.
+          LIB_JS="${GITHUB_WORKSPACE}/lib/main.js"
+          echo "Checking for ${LIB_JS}..."
+          if [ ! -f "${LIB_JS}" ]; then
+            echo "FAIL: lib/main.js not found — npm build did not produce output"
+            echo "Contents of GITHUB_WORKSPACE:"
+            ls -la "${GITHUB_WORKSPACE}/" || true
+            echo "Contents of lib/ (if exists):"
+            ls -la "${GITHUB_WORKSPACE}/lib/" 2>/dev/null || echo "(lib/ directory not found)"
+            exit 1
+          fi
+          echo "PASS: lib/main.js exists"
