@@ -8,6 +8,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 
 | Version | Tag | Upstream commit |
 |---------|-----|-----------------|
+| v1.3.0 | [`v1.3.0`](https://github.com/chainguard-actions/tobyhs-codemention/tree/v1.3.0) | [`2c4b067`](https://github.com/tobyhs/codemention/commit/2c4b067003818a4de567e8ed29ad439d70f8da97) |
 | v1.4.0 | [`v1.4.0`](https://github.com/chainguard-actions/tobyhs-codemention/tree/v1.4.0) | [`bb6bfb2`](https://github.com/tobyhs/codemention/commit/bb6bfb2c3ff1e6fee7ee37006bbee6d114057225) |
 | v1.5.1 | [`v1.5.1`](https://github.com/chainguard-actions/tobyhs-codemention/tree/v1.5.1) | [`bf5c6ac`](https://github.com/tobyhs/codemention/commit/bf5c6ac5d806998074ac73a6d260c2a85fb59af3) |
 | v1.5.2 | [`v1.5.2`](https://github.com/chainguard-actions/tobyhs-codemention/tree/v1.5.2) | [`14c10ab`](https://github.com/tobyhs/codemention/commit/14c10ab8528ed556c3b92f205e7b5aa03e7b187c) |
