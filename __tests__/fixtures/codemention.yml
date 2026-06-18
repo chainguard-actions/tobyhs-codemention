@@ -1,0 +1,10 @@
+commentConfiguration:
+  preamble: 'testing preamble'
+  epilogue: 'testing epilogue'
+rules:
+  - patterns: ['config/**']
+    mentions: ['sysadmin']
+  - patterns: ['db/migrate/**']
+    mentions: ['cto', 'dba']
+  - patterns: ['.github/**', 'spec/*.rb']
+    mentions: ['ci']
