@@ -13,6 +13,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 | v1.5.0 | [`v1.5.0`](https://github.com/chainguard-actions/tobyhs-codemention/tree/v1.5.0) | [`74dfa3a`](https://github.com/tobyhs/codemention/commit/74dfa3a542e809bcf53dfae55aaffe64df24f1c8) |
 | v1.5.1 | [`v1.5.1`](https://github.com/chainguard-actions/tobyhs-codemention/tree/v1.5.1) | [`bf5c6ac`](https://github.com/tobyhs/codemention/commit/bf5c6ac5d806998074ac73a6d260c2a85fb59af3) |
 | v1.5.2 | [`v1.5.2`](https://github.com/chainguard-actions/tobyhs-codemention/tree/v1.5.2) | [`14c10ab`](https://github.com/tobyhs/codemention/commit/14c10ab8528ed556c3b92f205e7b5aa03e7b187c) |
+| v2.0.0 | [`v2.0.0`](https://github.com/chainguard-actions/tobyhs-codemention/tree/v2.0.0) | [`6bcee34`](https://github.com/tobyhs/codemention/commit/6bcee34ead584c18579c124d57741617b2a07cb5) |
 
 ## Privacy
 
