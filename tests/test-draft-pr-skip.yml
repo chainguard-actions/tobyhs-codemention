@@ -1,0 +1,62 @@
+name: Test codemention skips draft pull requests
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: pull_request
+      GITHUB_REF: refs/pull/2/merge
+      GITHUB_HEAD_REF: draft-feature-branch
+      GITHUB_BASE_REF: main
+      GITHUB_REPOSITORY: testowner/testrepo
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Write draft pull_request event payload to GITHUB_EVENT_PATH
+        run: |
+          cat > "$GITHUB_EVENT_PATH" <<'EOF'
+          {
+            "action": "opened",
+            "pull_request": {
+              "number": 2,
+              "draft": true,
+              "user": {
+                "login": "testuser"
+              },
+              "base": {
+                "sha": "abc123",
+                "ref": "main"
+              },
+              "head": {
+                "sha": "def456",
+                "ref": "draft-feature-branch"
+              }
+            },
+            "repository": {
+              "name": "testrepo",
+              "owner": {
+                "login": "testowner"
+              }
+            }
+          }
+          EOF
+
+      - name: Run codemention action on draft PR (should succeed/skip)
+        id: action
+        uses: .
+        with:
+          githubToken: invalid-token-for-testing
+        continue-on-error: true
+
+      - name: Assert action succeeded (skipped draft PR without API calls)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" != "success" ]; then
+            echo "FAIL: expected action to succeed (skip) for draft PR, but got outcome: $OUTCOME"
+            exit 1
+          fi
+          echo "PASS: action correctly skipped draft pull request"

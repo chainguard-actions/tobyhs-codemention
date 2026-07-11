@@ -1,0 +1,62 @@
+name: Test codemention with invalid token
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: pull_request
+      GITHUB_REF: refs/pull/1/merge
+      GITHUB_HEAD_REF: feature-branch
+      GITHUB_BASE_REF: main
+      GITHUB_REPOSITORY: testowner/testrepo
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Write pull_request event payload to GITHUB_EVENT_PATH
+        run: |
+          cat > "$GITHUB_EVENT_PATH" <<'EOF'
+          {
+            "action": "opened",
+            "pull_request": {
+              "number": 1,
+              "draft": false,
+              "user": {
+                "login": "testuser"
+              },
+              "base": {
+                "sha": "abc123",
+                "ref": "main"
+              },
+              "head": {
+                "sha": "def456",
+                "ref": "feature-branch"
+              }
+            },
+            "repository": {
+              "name": "testrepo",
+              "owner": {
+                "login": "testowner"
+              }
+            }
+          }
+          EOF
+
+      - name: Run codemention action (expect failure with invalid token)
+        id: action
+        uses: .
+        with:
+          githubToken: invalid-token-for-testing
+        continue-on-error: true
+
+      - name: Assert action failed with invalid token
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" != "failure" ]; then
+            echo "FAIL: expected action to fail with invalid token, but got outcome: $OUTCOME"
+            exit 1
+          fi
+          echo "PASS: action correctly failed with invalid token"

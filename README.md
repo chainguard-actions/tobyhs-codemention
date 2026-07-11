@@ -1,18 +1,71 @@
-# tobyhs/codemention
+<p align="center">
+  <a href="https://github.com/tobyhs/codemention/actions"><img alt="typescript-action status" src="https://github.com/tobyhs/codemention/workflows/build-test/badge.svg"></a>
+</p>
 
-Mentions people who subscribe to file changes on pull requests
+# CodeMention
 
-Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at [https://github.com/tobyhs/codemention](https://github.com/tobyhs/codemention).
+CodeMention is a GitHub Action that mentions users and teams who subscribe to certain file changes on pull requests.
+See in pull requests in the [codemention-test repo](https://github.com/tobyhs/codemention-test/pulls?q=is%3Apr) for examples of how this looks like.
 
-## Versions
+This is similar to [Codenotify](https://github.com/sourcegraph/codenotify), but this retrieves the list of files changed via GitHub's REST API instead of using [actions/checkout](https://github.com/actions/checkout) to clone the repo (which can be problematic on large repos).
 
-| Version | Tag | Upstream commit |
-|---------|-----|-----------------|
-| v1.3.0 | [`v1.3.0`](https://github.com/chainguard-actions/tobyhs-codemention/tree/v1.3.0) | [`2c4b067`](https://github.com/tobyhs/codemention/commit/2c4b067003818a4de567e8ed29ad439d70f8da97) |
-| v1.4.0 | [`v1.4.0`](https://github.com/chainguard-actions/tobyhs-codemention/tree/v1.4.0) | [`bb6bfb2`](https://github.com/tobyhs/codemention/commit/bb6bfb2c3ff1e6fee7ee37006bbee6d114057225) |
-| v1.5.0 | [`v1.5.0`](https://github.com/chainguard-actions/tobyhs-codemention/tree/v1.5.0) | [`74dfa3a`](https://github.com/tobyhs/codemention/commit/74dfa3a542e809bcf53dfae55aaffe64df24f1c8) |
-| v1.5.1 | [`v1.5.1`](https://github.com/chainguard-actions/tobyhs-codemention/tree/v1.5.1) | [`bf5c6ac`](https://github.com/tobyhs/codemention/commit/bf5c6ac5d806998074ac73a6d260c2a85fb59af3) |
-| v1.5.2 | [`v1.5.2`](https://github.com/chainguard-actions/tobyhs-codemention/tree/v1.5.2) | [`14c10ab`](https://github.com/tobyhs/codemention/commit/14c10ab8528ed556c3b92f205e7b5aa03e7b187c) |
+## Usage
+
+To use this GitHub Action, add a `.github/codemention.yml` file to your repo that contains mentions/notifications rules.
+An example looks like:
+```yaml
+rules:
+  - patterns: ['config/**']
+    mentions: ['sysadmin']
+  - patterns: ['db/migrate/**']
+    mentions: ['cto', 'dba']
+  - patterns: ['.github/**', 'spec/*.rb']
+    mentions: ['ci']
+```
+
+See the Configuration interface in [src/configuration.ts](src/configuration.ts) for possible options.
+
+Add a `.github/workflows/codemention.yml` file to your repo with the following:
+```yaml
+name: codemention
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, ready_for_review]
+
+jobs:
+  codemention:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: tobyhs/codemention@v2
+        with:
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+```
+
+Due to GitHub Actions [access restrictions on caching](https://docs.github.com/en/actions/reference/workflows-and-actions/dependency-caching#restrictions-for-accessing-a-cache), a pull request typically cannot save a cache that other pull requests can use. To work around this, you can create a workflow that saves the dpendency cache in the default branch scope with a file like the following (replace `main` with your default branch):
+```yaml
+name: 'codemention: populate cache'
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  codemention_populate_cache:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: tobyhs/codemention/populate-cache@v2
+```
+
+### Team Mentions
+
+In order for CodeMention to mention teams, you need to use a GitHub [personal access token](https://github.com/settings/tokens) that has [organization permissions to read members](https://docs.github.com/en/rest/authentication/permissions-required-for-fine-grained-personal-access-tokens?apiVersion=2022-11-28#organization-permissions-for-members).
+Replace the `githubToken` input with your personal access token.
 
 ## Privacy
 

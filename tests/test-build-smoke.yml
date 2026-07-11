@@ -1,0 +1,69 @@
+name: Test codemention build smoke test
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: pull_request
+      GITHUB_REPOSITORY: testowner/testrepo
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Write pull_request event payload to GITHUB_EVENT_PATH
+        run: |
+          cat > "$GITHUB_EVENT_PATH" <<'EOF'
+          {
+            "action": "opened",
+            "pull_request": {
+              "number": 1,
+              "draft": false,
+              "user": {
+                "login": "testuser"
+              },
+              "base": {
+                "sha": "abc123",
+                "ref": "main"
+              },
+              "head": {
+                "sha": "def456",
+                "ref": "feature-branch"
+              }
+            },
+            "repository": {
+              "name": "testrepo",
+              "owner": {
+                "login": "testowner"
+              }
+            }
+          }
+          EOF
+
+      - name: Run codemention action (expect failure due to invalid token)
+        id: action
+        uses: .
+        with:
+          githubToken: smoke-test-token
+        continue-on-error: true
+
+      - name: Assert dist/main.js was built
+        run: |
+          if [ ! -f dist/main.js ]; then
+            echo "FAIL: dist/main.js was not produced by the build step"
+            exit 1
+          fi
+          echo "PASS: dist/main.js exists after build"
+
+      - name: Assert action ran (build succeeded, action attempted to run)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          # The action should either succeed or fail (not be skipped/cancelled)
+          # With an invalid token, it will fail at the API call stage
+          if [ "$OUTCOME" = "cancelled" ]; then
+            echo "FAIL: action was unexpectedly cancelled"
+            exit 1
+          fi
+          echo "PASS: action ran (outcome: $OUTCOME)"

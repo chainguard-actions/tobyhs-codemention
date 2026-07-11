@@ -1,0 +1,10 @@
+commentConfiguration:
+  template: Some template
+
+rules:
+  - patterns: ['config/**']
+    mentions: ['sysadmin', 'testlogin']
+  - patterns: ['db/migrate/**']
+    mentions: ['cto', 'dba']
+  - patterns: ['.github/**', 'spec/*.rb']
+    mentions: ['ci']
