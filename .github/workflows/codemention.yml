@@ -19,12 +19,12 @@ jobs:
       # indicates workflows triggered by pull_request_target events are always
       # run regardless of approval settings.
       - name: CodeMention (PR from fork)
-        uses: tobyhs/codemention@6bcee34ead584c18579c124d57741617b2a07cb5 # main
+        uses: tobyhs/codemention@0887fe62efa60b8052d9995c9791e1243da6653c # main
         with:
           githubToken: ${{ secrets.GITHUB_TOKEN }}
         if: github.event.pull_request.head.repo.fork
 
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ github.event.pull_request.head.sha }}
         if: ${{ !github.event.pull_request.head.repo.fork }}
