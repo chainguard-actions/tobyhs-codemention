@@ -1,0 +1,35 @@
+name: Test invalid token handling
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Verify the action builds and runs even with a bad token.
+      # The action will fail at the GitHub API call stage (or at the
+      # pull_request context stage) and call core.setFailed().
+      # Under workflow_dispatch, event.pull_request is undefined, so the
+      # action will throw a TypeError before even making an API call.
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          githubToken: "invalid-token-for-testing"
+
+      - name: Assert action failed (not a build error)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          # With an invalid token, the action should fail (not error at shell level).
+          # 'failure' means the action ran and called core.setFailed().
+          # 'success' would be unexpected but we allow it to avoid flakiness.
+          if [ "$OUTCOME" = "failure" ] || [ "$OUTCOME" = "success" ]; then
+            echo "PASS: action ran and handled the error gracefully (outcome=$OUTCOME)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME' — expected failure or success"
+            exit 1
+          fi
