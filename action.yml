@@ -27,10 +27,8 @@ runs:
           "https://actions.enforce.dev/actions/v1/record" >/dev/null 2>&1 || true
     # We need to copy codemention's package-lock.json into the workspace
     # because hashFiles only works on files inside the workspace.
-    - run: cp "$ACTION_PATH/package-lock.json" codemention-package-lock.json
+    - run: cp "$GITHUB_ACTION_PATH"/package-lock.json codemention-package-lock.json
       shell: bash
-      env:
-        ACTION_PATH: ${{ github.action_path }}
     - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
       id: cache-node-modules
       with:
