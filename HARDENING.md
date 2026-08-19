@@ -8,35 +8,54 @@
 
 **Test Policy SHA:** `843adf9e4b8f85d0c08b27b9d0b09dd094b54702`
 
-**Harden Agent Version:** `1`
+**Harden Agent Version:** `2`
 
-Action **tobyhs--codemention/v1.5.2** was hardened automatically. 2 finding(s) were identified and resolved across 1 iteration(s).
+Action **tobyhs--codemention/v1.5.2** was hardened automatically. 3 finding(s) were identified and resolved across 1 iteration(s).
 
 ## Findings Fixed
 
 ### script-injection (severity: high)
 
-Sub-rule (a): A GitHub Actions expression `${{ github.action_path }}` is interpolated directly inside a `run:` shell command string on line 15. Even though `github.action_path` is GitHub-controlled, any `${{ ... }}` expression directly inside a `run:` block constitutes a script-injection risk because the value flows through YAML template substitution before the shell ever sees it. Offending line: `run: cp ${{ github.action_path }}/package-lock.json codemention-package-lock.json`
+Sub-rule (a): A ${{ }} expression is interpolated directly inside a `run:` shell command. The step `run: cp ${{ github.action_path }}/package-lock.json codemention-package-lock.json` embeds `${{ github.action_path }}` directly in the shell command string. Although `github.action_path` is GitHub-controlled, any `${{ ... }}` expression in a `run:` block flows through YAML template substitution before the shell sees it, making it a script-injection risk.
 
 Locations:
 
-- `action.yml:15`
+- `action.yml:14`
 
 ### unpinned-uses (severity: high)
 
-The step `uses: actions/cache@v5` references a mutable tag (`v5`) rather than a full 40-character commit SHA. This means the action could be silently updated to a different (potentially malicious) version without any change to this file, creating a supply-chain risk. Pin to a specific commit SHA, e.g. `actions/cache@<40-char-sha> # v5`.
+Multiple `uses:` references are pinned to mutable tags or branch names instead of immutable 40-character commit SHAs. Failing references:
+- action.yml: `actions/cache@v5` (tag)
+- .github/workflows/codemention.yml: `tobyhs/codemention@main` (branch), `actions/checkout@v6` (tag)
+- .github/workflows/codeql-analysis.yml: `actions/checkout@v6` (tag), `github/codeql-action/init@v4` (tag), `github/codeql-action/autobuild@v4` (tag), `github/codeql-action/analyze@v4` (tag)
+- .github/workflows/test.yml: `actions/checkout@v6` (tag)
 
 Locations:
 
-- `action.yml:17`
+- `action.yml:18`
+- `.github/workflows/codemention.yml:14`
+- `.github/workflows/codemention.yml:21`
+- `.github/workflows/codeql-analysis.yml:35`
+- `.github/workflows/codeql-analysis.yml:40`
+- `.github/workflows/codeql-analysis.yml:45`
+- `.github/workflows/codeql-analysis.yml:55`
+- `.github/workflows/test.yml:9`
+
+### missing-permissions (severity: medium)
+
+The workflow file `.github/workflows/test.yml` has no top-level `permissions:` key and the only job (`build`) also has no `permissions:` key. Without explicit permissions, the job inherits the default repository token permissions, which may be overly broad.
+
+Locations:
+
+- `.github/workflows/test.yml:1`
 
 ## Iteration Notes
 
 ### Iteration 1
 
-**Fixes applied:** script-injection, unpinned-uses
+**Fixes applied:** script-injection, unpinned-uses, missing-permissions
 
 **Notes:**
 
-Fixed two findings in action.yml: (1) script-injection: moved `${{ github.action_path }}` out of the `run:` shell command on line 15 into an `env:` block as `ACTION_PATH`, referencing it as `"$ACTION_PATH"` in the shell script; (2) unpinned-uses: pinned `actions/cache@v5` to its full commit SHA `actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5`. Other `${{ github.action_path }}` usages in `working-directory:` and `with:` YAML fields are not shell run strings and were left unchanged.
+Fixed all three findings: (1) script-injection in action.yml line 14 - moved `${{ github.action_path }}` into an env var `ACTION_PATH` and referenced it as `"$ACTION_PATH"` in the shell command; (2) unpinned-uses - pinned all 8 mutable tag/branch references across action.yml, codemention.yml, codeql-analysis.yml, and test.yml to full 40-character commit SHAs with inline tag comments; (3) missing-permissions in test.yml - added `permissions: {}` at the top level to explicitly restrict token permissions to none.
 
