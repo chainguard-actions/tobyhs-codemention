@@ -16,7 +16,7 @@ Action **tobyhs--codemention/v1.3.0** was hardened automatically. 2 finding(s) w
 
 ### script-injection (severity: high)
 
-Sub-rule (a): A ${{ }} expression is interpolated directly inside a `run:` shell command string. On line 15, `${{ github.action_path }}` is embedded directly in the shell command `cp ${{ github.action_path }}/package-lock.json codemention-package-lock.json`. Any ${{ ... }} expression inside a run: block constitutes a script-injection risk because the value is substituted into the shell command before the shell parses it. The safe pattern is to use the pre-set environment variable `$GITHUB_ACTION_PATH` instead.
+Sub-rule (a): A GitHub Actions expression `${{ github.action_path }}` is directly interpolated inside a `run:` shell command string on line 15. Any `${{ ... }}` expression inside a `run:` block is a script-injection risk because the value is substituted into the shell command before the shell parses it. The offending line is: `run: cp ${{ github.action_path }}/package-lock.json codemention-package-lock.json`. This should be replaced with the environment variable `$GITHUB_ACTION_PATH` (the pre-set env var equivalent), which avoids template substitution into the shell command.
 
 Locations:
 
@@ -24,7 +24,7 @@ Locations:
 
 ### unpinned-uses (severity: high)
 
-The step `uses: actions/cache@v4` references the action by a mutable tag (`v4`) rather than a pinned 40-character commit SHA. A mutable tag can be moved to point to a different (potentially malicious) commit at any time, enabling supply-chain attacks. It should be pinned to a full SHA, e.g. `uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c6158d # v4`.
+The composite action step uses `actions/cache@v4`, which is a mutable tag reference rather than a pinned 40-character commit SHA. A tag can be moved to point to a different (potentially malicious) commit at any time, enabling supply-chain attacks. It should be pinned to a full SHA, e.g. `actions/cache@1bd1e32a3bdc45362d1e726936510720a7c6158d # v4`.
 
 Locations:
 
@@ -38,5 +38,5 @@ Locations:
 
 **Notes:**
 
-1. script-injection (line 15): Replaced `${{ github.action_path }}` in the `run:` shell command with the pre-set environment variable `$GITHUB_ACTION_PATH` (quoted for safety). 2. unpinned-uses (line 17): Pinned `actions/cache@v4` to its full commit SHA `0057852bfaa89a56745cba8c7296529d2fc39830` with a `# v4` comment. The remaining `${{ github.action_path }}` expressions in `with:` and `working-directory:` fields are not `run:` shell commands and are not script-injection risks.
+Fixed two findings in hardened/action/action.yml: (1) Replaced `${{ github.action_path }}` with `$GITHUB_ACTION_PATH` in the `run:` shell command to eliminate script injection risk; (2) Pinned `actions/cache@v4` to its full commit SHA `0057852bfaa89a56745cba8c7296529d2fc39830` with a `# v4` comment. The remaining `${{ github.action_path }}` references in `with:` and `working-directory:` YAML fields are not shell commands and are not injection risks.
 
