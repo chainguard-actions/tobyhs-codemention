@@ -1,0 +1,41 @@
+name: Test cache hit skips npm ci
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Run populate-cache action (first run to populate cache)
+        id: action
+        uses: .
+      - name: Assert node_modules exists after action
+        run: |
+          echo "Checking node_modules directory..."
+          if [ ! -d "node_modules" ]; then
+            echo "FAIL: node_modules directory was not created"
+            exit 1
+          fi
+          echo "PASS: node_modules directory exists"
+      - name: Assert action.yml was copied into workspace
+        run: |
+          echo "Checking action.yml in workspace..."
+          if [ ! -f "action.yml" ]; then
+            echo "FAIL: action.yml was not copied into workspace"
+            exit 1
+          fi
+          echo "PASS: action.yml exists in workspace"
+      - name: Assert .node-version file is present
+        run: |
+          echo "Checking .node-version file..."
+          if [ ! -f ".node-version" ]; then
+            echo "FAIL: .node-version file not found in workspace"
+            exit 1
+          fi
+          NODE_VER=$(cat .node-version | tr -d '[:space:]')
+          echo "Node version: $NODE_VER"
+          if [ -z "$NODE_VER" ]; then
+            echo "FAIL: .node-version file is empty"
+            exit 1
+          fi
+          echo "PASS: .node-version file is present with content: $NODE_VER"

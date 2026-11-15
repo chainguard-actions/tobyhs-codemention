@@ -1,0 +1,28 @@
+name: Test basic cache population
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Run populate-cache action
+        id: action
+        uses: .
+      - name: Assert node_modules exists
+        run: |
+          echo "Checking node_modules directory..."
+          if [ ! -d "node_modules" ]; then
+            echo "FAIL: node_modules directory was not created"
+            exit 1
+          fi
+          echo "PASS: node_modules directory exists"
+      - name: Assert node is available
+        run: |
+          echo "Checking node version..."
+          node --version
+          if ! node --version > /dev/null 2>&1; then
+            echo "FAIL: node is not available"
+            exit 1
+          fi
+          echo "PASS: node is available"

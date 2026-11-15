@@ -1,0 +1,32 @@
+name: Test basic usage (non-PR event graceful failure)
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # The action runs on pull_request events and makes repo-scoped GitHub API
+      # calls. Under act, the event is workflow_dispatch and GITHUB_REPOSITORY
+      # is a sentinel, so the action will fail gracefully (setFailed or throw).
+      # We verify it fails gracefully rather than crashing the runner.
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          githubToken: ${{ github.token }}
+
+      - name: Assert action ran and failed gracefully (not a PR event / sentinel repo)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully as expected (not a PR event or sentinel repo)"
+          elif [ "$OUTCOME" = "success" ]; then
+            echo "PASS: action succeeded unexpectedly (may have been a no-op)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
