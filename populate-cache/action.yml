@@ -39,11 +39,11 @@ runs:
       run: |
         [ -f action.yml ] || cp -r "${GITHUB_ACTION_PATH}/../." .
       shell: bash
-    - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+    - uses: chainguard-actions/actions-setup-node@e20a37d07d82e3bf48155b3fc8ee09a87c6c907d # v6
       with:
         node-version-file: .node-version
         package-manager-cache: false
-    - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+    - uses: chainguard-actions/actions-cache@46c2783c2418d3de33490be27a0d86c6268bc4fd # v6
       id: cache-node-modules
       with:
         path: node_modules
